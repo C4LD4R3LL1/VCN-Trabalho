@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de Raiz por Bisseção</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .coef-input {
+            max-width: 100px;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .polynomial {
+            font-size: 1.2rem;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        #resultContainer {
+            display: none;
+        }
+        .iteration-row {
+            border-bottom: 1px solid #dee2e6;
+            padding: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <h1 class="text-center mb-4">Método da Bisseção</h1>
+                
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Insira a função polinomial</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="bisseccaoForm">
+                            <div class="mb-3">
+                                <label class="form-label">Grau do polinômio (máx. 10):</label>
+                                <select id="grauPolinomio" class="form-select" style="max-width: 100px;">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                </select>
+                            </div>
+                            
+                            <div id="coeficientesContainer" class="mb-4">
+                                <!-- Os campos de coeficientes serão gerados aqui -->
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Precisão (10^-n):</label>
+                                <input type="number" id="precisao" class="form-control" min="1" max="15" value="6" style="max-width: 100px;">
+                            </div>
+                            
+                            <div class="polynomial text-center" id="polynomialPreview">
+                                f(x) = 0x¹⁰ + 0x⁹ + 0x⁸ + 0x⁷ + 0x⁶ + 0x⁵ + 0x⁴ + 0x³ + 0x² + 0x + 0
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Calcular Raiz</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div id="resultContainer" class="card mt-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">Resultado</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="resultContent">
+                            <!-- Resultados serão exibidos aqui -->
+                        </div>
+                        <div id="logsContainer" class="mt-4" style="white-space: pre-wrap; font-family: monospace; background:#f1f1f1; padding:10px; border-radius:5px; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
