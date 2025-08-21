@@ -6,6 +6,7 @@ import java.util.List;
 import src.entidade.CalculoBisseccao;
 import src.entidade.envio.CalculoBisseccaoEnvio;
 import src.entidade.retorno.CalculoBisseccaoRetorno;
+import src.entidade.retorno.LogBisseccao;
 
 public class CalculoBisseccaoServico {
 
@@ -17,25 +18,73 @@ public class CalculoBisseccaoServico {
         return resultado;
     }
 
-    private double[] encontrarIntervaloComRaiz(double[] coeficientes, double intervaloA, double intervaloB, double passo) {
+    private List<double[]> encontrarTodosIntervalosComRaiz(double[] coeficientes, double intervaloA, double intervaloB, double passo) {
+        List<double[]> intervalos = new ArrayList<>();
         double a = intervaloA;
         double b = a + passo;
+
         while (b <= intervaloB) {
             double fa = f(coeficientes, a);
             double fb = f(coeficientes, b);
+
             if (fa == 0) {
-                return new double[]{a, a};
+                intervalos.add(new double[]{a, a});
+            } else if (fb == 0) {
+                intervalos.add(new double[]{b, b});
+            } else if (fa * fb < 0) {
+                intervalos.add(new double[]{a, b});
             }
-            if (fb == 0) {
-                return new double[]{b, b};
-            }
-            if (fa * fb < 0) {
-                return new double[]{a, b};
-            }
+
             a = b;
             b = b + passo;
         }
-        return null;
+        return intervalos;
+    }
+
+    private RaizResultado calcularRaizNoIntervalo(double[] coeficientes, double a, double b, double precisao) {
+        List<Double> aproximacoes = new ArrayList<>();
+        List<Double> erros = new ArrayList<>();
+        List<LogBisseccao> logs = new ArrayList<>();
+
+        double raiz = 0;
+        int iteracoes = 0;
+        double fRaiz = Double.MAX_VALUE;
+
+        while (true) {
+            double fa = f(coeficientes, a);
+            double fb = f(coeficientes, b);
+
+            raiz = (a + b) / 2.0;
+            double erro = f(coeficientes, raiz);
+
+            if (iteracoes > 0) {
+            	fRaiz = Math.abs(raiz - aproximacoes.get(iteracoes - 1));
+            } else {
+            	fRaiz = 0.0;
+            }
+
+            aproximacoes.add(raiz);
+            erros.add(fRaiz);
+
+            logs.add(new LogBisseccao(
+                    iteracoes + 1,
+                    a, b, raiz,
+                    fRaiz,
+                    fa, fb, erro
+            ));
+
+            if (fa * erro < 0) {
+                b = raiz;
+            } else {
+                a = raiz;
+            }
+
+            iteracoes++;
+
+            if (Math.abs(erro) < precisao) break;
+        }
+
+        return new RaizResultado(raiz, iteracoes, aproximacoes, erros, logs);
     }
 
     public CalculoBisseccaoRetorno calcularRaiz(CalculoBisseccaoEnvio envio) {
@@ -46,78 +95,51 @@ public class CalculoBisseccaoServico {
         double intervaloA = envio.getIntervaloA();
         double intervaloB = envio.getIntervaloB();
         double[] coeficientes = envio.getCoeficientes();
-
         double precisao = Math.pow(10, -envio.getPrecisao());
+        double passo = 1;
 
-        double passo = 1; 
+        List<double[]> intervalos = encontrarTodosIntervalosComRaiz(coeficientes, intervaloA, intervaloB, passo);
 
-        double[] subintervalo = encontrarIntervaloComRaiz(coeficientes, intervaloA, intervaloB, passo);
-
-        if (subintervalo == null) {
+        if (intervalos.isEmpty()) {
             return new CalculoBisseccaoRetorno(0, 0, null, null, "Não existe raiz no intervalo informado", null);
         }
 
-        double a = subintervalo[0];
-        double b = subintervalo[1];
+        List<Double> todasAproximacoes = new ArrayList<>();
+        List<Double> todosErros = new ArrayList<>();
+        List<LogBisseccao> todosLogs = new ArrayList<>();
+        double ultimaRaiz = 0;
+        int totalIteracoes = 0;
 
-        List<Double> aproximacoes = new ArrayList<>();
-        List<Double> erros = new ArrayList<>();
-
-        double raiz = 0;
-        int iteracoes = 0;
-        double erro = Double.MAX_VALUE;
-
-        System.out.println("=== Início do cálculo por Bissecção ===");
-        System.out.printf("%-10s %-15s %-15s %-15s %-15s%n", "Iter", "a", "b", "x", "Erro");
-        
-        List<String> logs = new ArrayList<>();
-        logs.add("=== Início do cálculo por Bissecção ===");
-        logs.add(String.format("%-10s %-15s %-15s %-15s %-15s", "Iter", "a", "b", "x", "Erro"));
-
-        while (erro > precisao) {
-            raiz = (a + b) / 2.0;
-            double fRaiz = f(coeficientes, raiz);
-
-            if (iteracoes > 0) {
-                erro = Math.abs(raiz - aproximacoes.get(iteracoes - 1));
-                erros.add(erro);
-            } else {
-                erros.add(Double.NaN);
-            }
-
-            aproximacoes.add(raiz);
-            
-            String linha = String.format("%-10d %-15.8f %-15.8f %-15.8f %-15.8f",
-                    iteracoes + 1, a, b, raiz, (iteracoes > 0 ? erro : 0.0));
-            
-            System.out.printf(linha);
-            
-            logs.add(linha);
-
-            if (f(coeficientes, a) * fRaiz < 0) {
-                b = raiz;
-            } else {
-                a = raiz;
-            }
-
-            iteracoes++;
-
-            if (fRaiz == 0) break;
+        for (double[] sub : intervalos) {
+            RaizResultado resultado = calcularRaizNoIntervalo(coeficientes, sub[0], sub[1], precisao);
+            ultimaRaiz = resultado.raiz;
+            totalIteracoes += resultado.iteracoes;
+            todasAproximacoes.addAll(resultado.aproximacoes);
+            todosErros.addAll(resultado.erros);
+            todosLogs.addAll(resultado.logs);
         }
 
-        System.out.println("=== Fim do cálculo ===");
-        System.out.println("Raiz aproximada: " + raiz);
-        System.out.println("Iterações: " + iteracoes);
-        
-        logs.add("=== Fim do cálculo ===");
-        logs.add("Raiz aproximada: " + raiz);
-        logs.add("Iterações: " + iteracoes);
+        String mensagem = "Cálculo realizado com sucesso. Encontrados " + intervalos.size() + " subintervalos no intervalo de: " + envio.getIntervaloA() + " até " + envio.getIntervaloB()+ ".";
 
-        String mensagem = "Cálculo realizado com sucesso";
+        CalculoBisseccao calculo = new CalculoBisseccao(coeficientes, intervaloA, intervaloB,
+                envio.getPrecisao(), ultimaRaiz, totalIteracoes, todasAproximacoes, todosErros, mensagem);
 
-        CalculoBisseccao calculo = new CalculoBisseccao(coeficientes, subintervalo[0], subintervalo[1],
-                envio.getPrecisao(), raiz, iteracoes, aproximacoes, erros, mensagem);
+        return new CalculoBisseccaoRetorno(ultimaRaiz, totalIteracoes, todasAproximacoes, todosErros, mensagem, todosLogs);
+    }
 
-        return new CalculoBisseccaoRetorno(raiz, iteracoes, aproximacoes, erros, mensagem, logs != null ? logs : null);
+    private static class RaizResultado {
+        double raiz;
+        int iteracoes;
+        List<Double> aproximacoes;
+        List<Double> erros;
+        List<LogBisseccao> logs;
+
+        RaizResultado(double raiz, int iteracoes, List<Double> aproximacoes, List<Double> erros, List<LogBisseccao> logs) {
+            this.raiz = raiz;
+            this.iteracoes = iteracoes;
+            this.aproximacoes = aproximacoes;
+            this.erros = erros;
+            this.logs = logs;
+        }
     }
 }

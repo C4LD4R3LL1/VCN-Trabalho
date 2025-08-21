@@ -1,6 +1,5 @@
 package src.entidade.retorno;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class CalculoBisseccaoRetorno {
@@ -9,10 +8,10 @@ public class CalculoBisseccaoRetorno {
     private List<Double> aproximacoes;
     private List<Double> erros;
     private String mensagem;
-    private List<String> logs = new ArrayList<>();;
+    private List<LogBisseccao> logs;
 
     public CalculoBisseccaoRetorno(double raiz, int iteracoes, List<Double> aproximacoes,
-            List<Double> erros, String mensagem, List<String> logs) {
+            List<Double> erros, String mensagem, List<LogBisseccao> logs) {
 	this.raiz = raiz;
 	this.iteracoes = iteracoes;
 	this.aproximacoes = aproximacoes;
@@ -25,11 +24,11 @@ public class CalculoBisseccaoRetorno {
         return raiz;
     }
 
-    public List<String> getLogs() {
+    public List<LogBisseccao> getLogs() {
 		return logs;
 	}
 
-	public void setLogs(List<String> logs) {
+	public void setLogs(List<LogBisseccao> logs) {
 		this.logs = logs;
 	}
 

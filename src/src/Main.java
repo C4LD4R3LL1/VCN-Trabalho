@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.awt.Desktop;
+import java.io.File;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -14,6 +16,7 @@ import com.sun.net.httpserver.HttpServer;
 
 import src.entidade.envio.CalculoBisseccaoEnvio;
 import src.entidade.retorno.CalculoBisseccaoRetorno;
+import src.entidade.retorno.LogBisseccao;
 import src.servico.CalculoBisseccaoServico;
 
 public class Main {
@@ -73,7 +76,17 @@ public class Main {
 
         server.setExecutor(null);
         server.start();
-        System.out.println("Servidor rodando na porta 8080");
+        System.out.println("\nServidor rodando na porta 8080");
+        try {
+            File arquivo = new File("/Users/nxmultiservicos/Documents/Luis/VCN-Trabalho/front/index.html");
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().browse(arquivo.toURI());
+            } else {
+                System.out.println("Abertura automática não suportada neste sistema.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static CalculoBisseccaoEnvio parseJsonParaEnvio(String json) throws Exception {
@@ -130,8 +143,18 @@ public class Main {
 
         sb.append("\"logs\":[");
         if (retorno.getLogs() != null && !retorno.getLogs().isEmpty()) {
-        	for (int i = 0; i < retorno.getLogs().size(); i++) {
-                sb.append("\"").append(retorno.getLogs().get(i).replace("\"", "\\\"")).append("\"");
+            for (int i = 0; i < retorno.getLogs().size(); i++) {
+                LogBisseccao log = retorno.getLogs().get(i);
+                sb.append("{");
+                sb.append("\"iteracao\":").append(log.getIteracao()).append(",");
+                sb.append("\"a\":").append(log.getA()).append(",");
+                sb.append("\"b\":").append(log.getB()).append(",");
+                sb.append("\"x\":").append(log.getX()).append(",");
+                sb.append("\"fx\":").append(log.getErro()).append(",");
+                sb.append("\"fa\":").append(log.getFa()).append(",");
+                sb.append("\"fb\":").append(log.getFb()).append(",");
+                sb.append("\"erro\":").append(log.getFx());
+                sb.append("}");
                 if (i < retorno.getLogs().size() - 1) sb.append(",");
             }
         }
@@ -140,4 +163,5 @@ public class Main {
         sb.append("}");
         return sb.toString();
     }
+
 }

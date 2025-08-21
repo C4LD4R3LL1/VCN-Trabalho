@@ -98,71 +98,56 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function exibirResultados(resultado) {
-        resultContent.innerHTML = '';
-        logsContainer.style.display = 'none';
-        logsContainer.textContent = '';
+function exibirResultados(resultado) {
+    const resultContent = document.getElementById('resultContent');
+    const resultContainer = document.getElementById('resultContainer');
+    const iterationsContainer = document.getElementById('iterationsContainer');
+    const logsContainer = document.getElementById('logsContainer');
+    const iterationsTableBody = document.getElementById('iterationsTableBody');
+    const logsTableBody = document.getElementById('logsTableBody');
 
-        if (resultado.mensagem && resultado.mensagem !== "Cálculo realizado com sucesso") {
-            resultContent.innerHTML = `
-                <div class="alert alert-danger">${resultado.mensagem}</div>
-            `;
-            resultContainer.style.display = 'block';
-            return;
-        }
+    // Limpar conteúdos anteriores
+    resultContent.innerHTML = '';
+    iterationsTableBody.innerHTML = '';
+    logsTableBody.innerHTML = '';
+    iterationsContainer.style.display = 'none';
+    logsContainer.style.display = 'none';
 
-        let html = `
-            <div class="mb-3">
-                <h5>Raiz encontrada: <strong>${resultado.raiz.toFixed(8)}</strong></h5>
-                <p>Número de iterações: ${resultado.iteracoes}</p>
-            </div>
-        `;
-
-        if (resultado.aproximacoes && resultado.erros) {
-            html += `
-                <h5>Histórico de Iterações</h5>
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Iteração</th>
-                                <th>Aproximação</th>
-                                <th>Erro</th>
-                            </tr>
-                        </thead>
-                        <tbody id="iterationsTableBody"></tbody>
-                    </table>
-                </div>
-            `;
-        }
-
-        resultContent.innerHTML = html;
-
-        if (resultado.aproximacoes && resultado.erros) {
-            const tableBody = document.getElementById('iterationsTableBody');
-            for (let i = 0; i < resultado.iteracoes; i++) {
-                const aprox = resultado.aproximacoes[i];
-                const erro = resultado.erros[i];
-                const row = document.createElement('tr');
-                row.className = 'iteration-row';
-                row.innerHTML = `
-                    <td>${i + 1}</td>
-                    <td>${aprox.toFixed(8)}</td>
-                    <td>${erro.toExponential(4)}</td>
-                `;
-                tableBody.appendChild(row);
-            }
-        }
-
-        // Se o backend enviar algum log, mostre aqui
-        if (resultado.logs && Array.isArray(resultado.logs) && resultado.logs.length > 0) {
-            logsContainer.textContent = resultado.logs.join('\n');
-            logsContainer.style.display = 'block';
-        }
-
+    // Mensagem de erro
+    if (resultado.mensagem && !resultado.raiz) {
+        resultContent.innerHTML = `<div class="alert alert-danger">${resultado.mensagem}</div>`;
         resultContainer.style.display = 'block';
+        return;
     }
 
+    // Exibir raiz e número de iterações
+    resultContent.innerHTML = `
+        <div class="mb-3">
+            <h5>Total de iterações: <strong>${resultado.iteracoes}</strong></h5>
+        </div>
+    `;
+
+    // Exibir logs detalhados
+    if (resultado.logs && Array.isArray(resultado.logs) && resultado.logs.length > 0) {
+        resultado.logs.forEach(log => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${log.iteracao}</td>
+                <td>${log.a}</td>
+                <td>${log.b}</td>
+                <td>${log.x}</td>
+                <td>${log.fx}</td>
+                <td>${log.fa}</td>
+                <td>${log.fb}</td>
+                <td>${log.erro}</td>
+            `;
+            logsTableBody.appendChild(row);
+        });
+        logsContainer.style.display = 'block';
+    }
+
+    resultContainer.style.display = 'block';
+}
     grauPolinomio.addEventListener('change', gerarCamposCoeficientes);
 
     coeficientesContainer.addEventListener('input', e => {
@@ -186,8 +171,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const dadosEnvio = {
             coeficientes: coeficientes,
-            intervaloA: -100000, // valor fixo, pode criar inputs se quiser
-            intervaloB: 100000,
+            intervaloA: -1000, // valor fixo, pode criar inputs se quiser
+            intervaloB: 1000,
             precisao: precisao  // enviado como expoente para o backend converter 10^-precisao
         };
 
@@ -210,3 +195,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     gerarCamposCoeficientes();
 });
+
+function renderLogs(logs) {
+    const tbody = document.getElementById("logsTableBody");
+    tbody.innerHTML = "";
+    logs.forEach(item => {
+        const row = document.createElement("tr");
+        item.forEach(val => {
+            const cell = document.createElement("td");
+            cell.textContent = val;
+            row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+    });
+    document.getElementById("logsContainer").style.display = "block";
+}
