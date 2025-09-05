@@ -29,6 +29,12 @@
               <option value="3" selected>3x3</option>
               <option value="4">4x4</option>
               <option value="5">5x5</option>
+              <option value="6">6x6</option>
+              <option value="7">7x7</option>
+              <option value="8">8x8</option>
+              <option value="9">9x9</option>
+              <option value="10">10x10</option>
+              
             </select>
           </div>
           <button type="submit" class="btn btn-success">Gerar Matriz</button>
@@ -75,9 +81,9 @@
       for (let i = 0; i < n; i++) {
         html += "<tr>";
         for (let j = 0; j < n; j++) {
-          html += `<td><input type="number" step="any" class="form-control matrix-input" name="a${i}${j}" placeholder="a${i+1}${j+1}"></td>`;
+          html += `<td><input type="number" step="any" class="form-control matrix-input" name="a${i+1}${j+1}" placeholder="a${i+1}${j+1}"></td>`;
         }
-        html += `<td>| <input type="number" step="any" class="form-control matrix-input" name="b${i}" placeholder="b${i+1}"></td>`;
+        html += `<td><input type="number" step="any" class="form-control matrix-input" name="b${i+1}" placeholder="b${i+1}"></td>`;
         html += "</tr>";
       }
       html += "</tbody></table>";
@@ -86,15 +92,46 @@
     }
 
     valuesForm.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const data = new FormData(valuesForm);
-      let values = {};
-      for (let [key, val] of data.entries()) {
-        values[key] = parseFloat(val);
-      }
-      resultContent.innerHTML = `<pre>${JSON.stringify(values, null, 2)}</pre>`;
-      resultContainer.style.display = "block";
-    });
+  e.preventDefault();
+  const data = new FormData(valuesForm);
+  const n = parseInt(document.getElementById("matrixSize").value);
+
+  // Inicializa arrays
+  let a = [];
+  let b = [];
+
+  // Preenche a matriz A
+  for (let i = 0; i < n; i++) {
+    a[i] = [];
+    for (let j = 0; j < n; j++) {
+      const key = `a${i+1}${j+1}`;
+      a[i][j] = parseFloat(data.get(key));
+    }
+  }
+
+  // Preenche o vetor b
+  for (let i = 0; i < n; i++) {
+    const key = `b${i+1}`;
+    b[i] = parseFloat(data.get(key));
+  }
+
+  // Monta o objeto final
+  const payload = { a, b };
+
+  // Exibe para conferência
+  resultContent.innerHTML = `<pre>${JSON.stringify(payload, null, 2)}</pre>`;
+  resultContainer.style.display = "block";
+
+  // Aqui você poderia enviar via fetch/axios para o backend
+  /*
+  fetch('URL_DO_BACKEND', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(res => res.json())
+    .then(data => console.log(data));
+  */
+});
   </script>
 </body>
 </html>
