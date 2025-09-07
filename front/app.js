@@ -123,28 +123,34 @@ function exibirResultados(resultado) {
     // Exibir raiz e número de iterações
     resultContent.innerHTML = `
         <div class="mb-3">
+            <h6>Obs: <strong>${resultado.mensagem}</strong></h6>
             <h5>Total de iterações: <strong>${resultado.iteracoes}</strong></h5>
         </div>
     `;
 
-    // Exibir logs detalhados
     if (resultado.logs && Array.isArray(resultado.logs) && resultado.logs.length > 0) {
-        resultado.logs.forEach(log => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${log.iteracao}</td>
-                <td>${log.a}</td>
-                <td>${log.b}</td>
-                <td>${log.x}</td>
-                <td>${log.fx}</td>
-                <td>${log.fa}</td>
-                <td>${log.fb}</td>
-                <td>${log.erro}</td>
-            `;
-            logsTableBody.appendChild(row);
-        });
-        logsContainer.style.display = 'block';
-    }
+    resultado.logs.forEach(log => {
+        const row = document.createElement('tr');
+
+        // Se for a primeira iteração, deixa a linha em negrito
+        if (log.iteracao === 1) {
+            row.style.fontWeight = 'bold';
+        }
+
+        row.innerHTML = `
+            <td>${log.iteracao}</td>
+            <td>${log.a}</td>
+            <td>${log.b}</td>
+            <td>${log.x}</td>
+            <td>${log.fx}</td>
+            <td>${log.fa}</td>
+            <td>${log.fb}</td>
+            <td>${log.erro}</td>
+        `;
+        logsTableBody.appendChild(row);
+    });
+    logsContainer.style.display = 'block';
+}
 
     resultContainer.style.display = 'block';
 }
